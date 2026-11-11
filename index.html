@@ -141,7 +141,7 @@ function render(){
  const wk=$('week');wk.innerHTML='';for(let i=6;i>=0;i--){const x=new Date(d);x.setDate(x.getDate()-i);const rr=S.days[ds(x)],b=document.createElement('b');if(rr){const q=ratio(rr);b.className=q>=1?'f':q>=RATIO?'p':''}if(i==0)b.classList.add('today');wk.appendChild(b)}
  const list=$('list');list.innerHTML='';
  r.ids.forEach(id=>{const q=S.quests.find(x=>x.id==id);if(!q)return;const el=document.createElement('div');el.className='q'+(r.done[id]?' done':'');
-  el.appendChild(icon(q.tag));const m=document.createElement('div');m.className='nm';m.innerHTML=`${esc(q.name)}<div class="tg">${esc(q.tag)}</div>`;el.appendChild(m);
+  el.appendChild(icon(q.tag));const m=document.createElement('div');m.className='nm';m.innerHTML=`${esc(q.name)}<div class="tg">${esc(q.tag)}${r.done[id]==='auto'?' / 자동 체크':''}</div>`;el.appendChild(m);
   const cb=document.createElement('div');cb.className='cb';cb.textContent=r.done[id]?'✔':'';el.appendChild(cb);el.onclick=ev=>tap(id,ev);list.appendChild(el)});
  const n=r.ids.filter(i=>r.done[i]).length;$('prog').textContent=`진행 ${n}/${r.ids.length}`;$('pbar').style.width=(r.ids.length?n/r.ids.length*100:0)+'%';
  $('snd').textContent=S.sound?'소리 켬':'소리 끔';scene();
@@ -150,7 +150,7 @@ function fx(x,y,txt){const f=document.createElement('div');f.className='float';f
  for(let i=0;i<10;i++){const s=document.createElement('div');s.className='spark';s.style.left=x+'px';s.style.top=y+'px';s.style.background=['#ffc846','#46d2be','#ff8cbe','#fff'][i%4];const a=i/10*6.28;s.style.setProperty('--dx',Math.cos(a)*50+'px');s.style.setProperty('--dy',Math.sin(a)*50+'px');document.body.appendChild(s);setTimeout(()=>s.remove(),800)}}
 function tap(id,ev){
  const r=rec(new Date()),before=levelOf(totalXp()).lv,wasClear=r.ids.every(i=>r.done[i]);
- if(r.done[id]){delete r.done[id];save();render();return}
+ if(r.done[id]){if(r.done[id]==='auto'){r.skip=r.skip||{};r.skip[id]=1}delete r.done[id];save();render();return}
  r.done[id]=Date.now();save();
  fx(ev.clientX||innerWidth/2,ev.clientY||200,'+'+QXP+' XP');if(navigator.vibrate)navigator.vibrate(30);
  const after=levelOf(totalXp()).lv,clear=r.ids.every(i=>r.done[i]);
@@ -159,19 +159,39 @@ function tap(id,ev){
  else if(clear&&!wasClear){beep([[659,.1],[784,.1],[988,.1],[1319,.35]]);showBanner('ALL CLEAR!','오늘 퀘스트 전부 완료 +'+BONUS+' XP')}
  else beep([[660,.07],[990,.12]]);
 }
+/* ---- PC 자동 체크 (ntfy.sh 비밀 주소에서 오늘 완료 목록 읽기) ---- */
+let syncMsg='';
+async function syncPC(){
+ if(!S.sync)return;
+ try{
+  const t=await fetch('https://ntfy.sh/'+encodeURIComponent(S.sync)+'/json?poll=1&since=all',{cache:'no-store'}).then(r=>r.text());
+  const msgs=t.split('\n').filter(Boolean).map(l=>JSON.parse(l)).filter(m=>m.event==='message').sort((a,b)=>a.time-b.time);
+  if(!msgs.length){syncMsg='연결됨, 아직 받은 기록 없음';return}
+  const m=JSON.parse(msgs[msgs.length-1].message),r=rec(new Date());
+  syncMsg='마지막 수신 '+(m.updated||'').replace('T',' ').slice(5,16);
+  if(m.date!==ds(new Date()))return;
+  const before=levelOf(totalXp()).lv,wasClear=r.ids.every(i=>r.done[i]);let added=0;
+  (m.done||[]).forEach(id=>{if(r.ids.includes(id)&&!r.done[id]&&!(r.skip&&r.skip[id])){r.done[id]='auto';added++}});
+  if(added){save();render();const after=levelOf(totalXp()).lv,clear=r.ids.every(i=>r.done[i]);
+   if(after>before){beep([[523,.12],[659,.12],[784,.12],[1047,.3]]);showBanner('LEVEL UP!','Lv.'+after)}
+   else if(clear&&!wasClear){beep([[659,.1],[784,.1],[988,.1],[1319,.35]]);showBanner('ALL CLEAR!','오늘 퀘스트 전부 완료 +'+BONUS+' XP')}
+   else beep([[660,.07],[990,.12]])}
+ }catch(e){syncMsg='연결 실패(인터넷 확인)'}
+}
 function showBanner(t,s){$('bt').textContent=t;$('bs').textContent=s;$('banner').classList.add('on')}
 $('gear').onclick=()=>{const s=$('settings');s.hidden=!s.hidden;if(!s.hidden){drawSettings();s.scrollIntoView()}};
 $('snd').onclick=()=>{S.sound=!S.sound;save();render();beep([[660,.08]])};
 function drawSettings(){
  const el=$('settings');el.innerHTML='<div style="font-size:20px;margin-bottom:6px">퀘스트 관리</div>';
  S.quests.forEach((q,i)=>{const r=document.createElement('div');r.className='row';r.innerHTML=`<div class="nm">${esc(q.name)}<div class="sm">${esc(q.tag)} / ${q.days?q.days.map(d=>WD[d]).join(''):'매일'}</div></div>`;const b=document.createElement('button');b.className='btn';b.textContent='삭제';b.onclick=()=>{if(confirm('삭제할까요? 지난 기록은 유지됩니다.')){S.quests.splice(i,1);const r2=rec(new Date());r2.ids=r2.ids.filter(x=>x!=q.id);save();render();drawSettings()}};r.appendChild(b);el.appendChild(r)});
- el.insertAdjacentHTML('beforeend',`<div style="margin-top:12px;font-size:17px">새 퀘스트</div><input type="text" id="nn" placeholder="이름"><select id="nt" style="margin-top:6px">${TAGS.map(t=>`<option>${t}</option>`).join('')}</select><div class="days">${[...WD].map((w,i)=>`<label><input type="checkbox" value="${i}" checked><span>${w}</span></label>`).join('')}</div><button class="btn" id="add">추가</button><div style="margin-top:14px;font-size:17px">백업</div><div class="sm">기기를 바꾸거나 데이터가 걱정될 때 복사해 두세요.</div><textarea id="bk"></textarea><div class="row"><button class="btn" id="ex">내보내기</button><button class="btn" id="im">가져오기</button></div>`);
+ el.insertAdjacentHTML('beforeend',`<div style="margin-top:12px;font-size:17px">새 퀘스트</div><input type="text" id="nn" placeholder="이름"><select id="nt" style="margin-top:6px">${TAGS.map(t=>`<option>${t}</option>`).join('')}</select><div class="days">${[...WD].map((w,i)=>`<label><input type="checkbox" value="${i}" checked><span>${w}</span></label>`).join('')}</div><button class="btn" id="add">추가</button><div style="margin-top:14px;font-size:17px">PC 자동 체크</div><div class="sm">PC가 한 일(블로그·스레드·일기)을 자동으로 체크합니다. 비밀 주소를 넣으세요. <span id="sm">${esc(syncMsg)}</span></div><input type="text" id="sy" placeholder="비밀 주소 (quest-로 시작)" value="${esc(S.sync||'')}"><button class="btn" id="sv" style="margin-top:6px">저장하고 확인</button><div style="margin-top:14px;font-size:17px">백업</div><div class="sm">기기를 바꾸거나 데이터가 걱정될 때 복사해 두세요.</div><textarea id="bk"></textarea><div class="row"><button class="btn" id="ex">내보내기</button><button class="btn" id="im">가져오기</button></div>`);
  $('add').onclick=()=>{const n=$('nn').value.trim();if(!n)return;const days=[...document.querySelectorAll('.days input')].filter(x=>x.checked).map(x=>+x.value);const q={id:'q'+Date.now(),name:n,tag:$('nt').value,days:days.length==7?null:days};S.quests.push(q);const r=rec(new Date());if(!q.days||q.days.includes(wdOf(new Date())))r.ids.push(q.id);save();render();drawSettings()};
+ $('sv').onclick=async()=>{S.sync=$('sy').value.trim();save();$('sm').textContent='확인 중...';await syncPC();$('sm').textContent=syncMsg};
  $('ex').onclick=()=>{$('bk').value=JSON.stringify(S);$('bk').select()};
  $('im').onclick=()=>{try{const o=JSON.parse($('bk').value);if(!o.quests||!o.days)throw 0;S=o;save();render();drawSettings()}catch(e){alert('형식이 올바르지 않습니다')}};
 }
-load();render();setInterval(()=>{tick++;scene()},500);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
+load();render();syncPC();setInterval(()=>{tick++;scene()},500);setInterval(syncPC,120000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){render();syncPC()}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
