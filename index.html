@@ -215,22 +215,26 @@ function render(){
  const list=$('list');list.innerHTML='';
  GK.forEach(g=>{
   const dq=r.ids.map(id=>S.quests.find(x=>x.id==id)).filter(q=>q&&(q.goal||'common')==g);
-  const wq=S.quests.filter(q=>q.weekly&&(q.goal||'common')==g);
-  if(!dq.length&&!wq.length)return;
+  if(!dq.length)return;
   const gd=S.season.goals[g],dn=dq.filter(q=>r.done[q.id]).length;
-  const wn=wq.reduce((a,q)=>a+Math.min(wkCount(d,q.id),q.weekly),0),wt=wq.reduce((a,q)=>a+q.weekly,0);
   const h=document.createElement('div');h.className='gh';
-  h.innerHTML=`<div class="hd"><b style="font-weight:400">${esc(gd.name)}</b><span>오늘 ${dn}/${dq.length}${wt?' / 이번 주 '+wn+'/'+wt:''}</span></div>${gd.text?`<div class="tx">${esc(gd.text)}</div>`:''}${open[g]?`<div class="dt">어려울 점: ${esc(gd.obstacle||'(아직 안 적음)')}\n극복 방법: ${esc(gd.plan||'(아직 안 적음)')}</div>`:''}`;
+  h.innerHTML=`<div class="hd"><b style="font-weight:400">${esc(gd.name)}</b><span>오늘 ${dn}/${dq.length}</span></div>${gd.text?`<div class="tx">${esc(gd.text)}</div>`:''}${open[g]?`<div class="dt">어려울 점: ${esc(gd.obstacle||'(아직 안 적음)')}\n극복 방법: ${esc(gd.plan||'(아직 안 적음)')}</div>`:''}`;
   h.onclick=()=>{open[g]=!open[g];render()};list.appendChild(h);
   dq.forEach(q=>{const el=document.createElement('div');el.className='q'+(r.done[q.id]?' done':'');
    el.appendChild(icon(q.tag));const m=document.createElement('div');m.className='nm';m.innerHTML=`${esc(q.name)}<div class="tg">${esc(q.tag)}${r.done[q.id]==='auto'?' / 자동 체크':''}</div>`;el.appendChild(m);
    const cb=document.createElement('div');cb.className='cb';cb.textContent=r.done[q.id]?'✔':'';el.appendChild(cb);el.onclick=ev=>tap(q.id,ev);list.appendChild(el)});
+ });
+ const wq=S.quests.filter(q=>q.weekly);
+ if(wq.length){
+  const wn=wq.reduce((a,q)=>a+Math.min(wkCount(d,q.id),q.weekly),0),wt=wq.reduce((a,q)=>a+q.weekly,0);
+  const h=document.createElement('div');h.className='gh';h.style.cursor='default';
+  h.innerHTML=`<div class="hd"><b style="font-weight:400">이번 주 할 일</b><span>${wn}/${wt}</span></div><div class="tx">월요일에 새로 시작해요. 눌러서 횟수를 올려요.</div>`;list.appendChild(h);
   wq.forEach(q=>{const c=wkCount(d,q.id),full=c>=q.weekly;const el=document.createElement('div');el.className='q wkq'+(full?' done':'');
-   el.appendChild(icon(q.tag));const m=document.createElement('div');m.className='nm';m.innerHTML=`${esc(q.name)}<div class="tg">${esc(q.tag)} / 주 ${q.weekly}회</div>`;el.appendChild(m);
+   el.appendChild(icon(q.tag));const m=document.createElement('div');m.className='nm';m.innerHTML=`${esc(q.name)}<div class="tg">${esc(gname(q.goal||'common'))} / 주 ${q.weekly}회</div>`;el.appendChild(m);
    const mb=document.createElement('button');mb.className='minus';mb.textContent='−';mb.onclick=ev=>{ev.stopPropagation();wkAdd(q.id,-1)};el.appendChild(mb);
    const cn=document.createElement('div');cn.className='cnt';cn.textContent=c+'/'+q.weekly;el.appendChild(cn);
    el.onclick=ev=>wkTap(q.id,ev);list.appendChild(el)});
- });
+ }
  const n=r.ids.filter(i=>r.done[i]).length;$('prog').textContent=`오늘 ${n}/${r.ids.length}`;$('pbar').style.width=(r.ids.length?n/r.ids.length*100:0)+'%';
  $('snd').textContent=S.sound?'소리 켬':'소리 끔';scene();
 }
