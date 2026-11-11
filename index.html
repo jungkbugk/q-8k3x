@@ -26,11 +26,21 @@ h1{margin:0;font-size:26px;color:var(--gold);font-weight:400}
 .bar{flex:1;height:20px;background:var(--deep);border:3px solid #5a6290;position:relative;overflow:hidden}
 .bar i{position:absolute;left:0;top:0;bottom:0;background:repeating-linear-gradient(90deg,var(--gold) 0 14px,transparent 14px 17px);transition:width .5s steps(12)}
 .bar.t i{background:repeating-linear-gradient(90deg,var(--teal) 0 14px,transparent 14px 17px)}
+.bar.s{height:14px}
 .xpn{font-size:13px;color:var(--dim);white-space:nowrap}
-.streak{display:flex;gap:6px;align-items:center;justify-content:space-between;font-size:15px}
-.week{display:flex;gap:5px}
-.week b{width:20px;height:20px;background:var(--deep);border:2px solid #3a4070;display:block}
-.week b.p{background:#2f8f84}.week b.f{background:var(--teal)}.week b.today{outline:2px solid var(--gold)}
+.sea{font-size:20px;display:flex;justify-content:space-between;align-items:baseline}
+.sea small{font-size:14px;color:var(--teal)}
+.msg{font-size:14px;color:var(--dim);margin-top:6px;line-height:1.35}
+.weeks{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin:8px 0 4px}
+.weeks b{height:26px;background:var(--deep);border:2px solid #3a4070;display:block;position:relative}
+.weeks b.a{background:#2f8f84}.weeks b.g{background:var(--gold)}.weeks b.cur{outline:2px solid var(--ink)}
+.weeks b span{position:absolute;inset:0;display:grid;place-items:center;font-size:10px;color:var(--bg)}
+.wk-row{display:flex;justify-content:space-between;font-size:15px;align-items:center}
+.gh{margin:16px 2px 4px;cursor:pointer}
+.gh .hd{display:flex;justify-content:space-between;align-items:baseline;font-size:20px;color:var(--gold)}
+.gh .hd span{font-size:14px;color:var(--teal)}
+.gh .tx{font-size:14px;color:var(--dim);margin-top:2px}
+.gh .dt{font-size:13px;color:var(--ink);background:var(--deep);padding:8px;margin-top:6px;line-height:1.4;white-space:pre-wrap}
 .q{display:flex;align-items:center;gap:12px;background:var(--panel);padding:12px;margin:8px 0;cursor:pointer;user-select:none;position:relative;clip-path:polygon(0 8px,4px 8px,4px 4px,8px 4px,8px 0,calc(100% - 8px) 0,calc(100% - 8px) 4px,calc(100% - 4px) 4px,calc(100% - 4px) 8px,100% 8px,100% calc(100% - 8px),calc(100% - 4px) calc(100% - 8px),calc(100% - 4px) calc(100% - 4px),calc(100% - 8px) calc(100% - 4px),calc(100% - 8px) 100%,8px 100%,8px calc(100% - 4px),4px calc(100% - 4px),4px calc(100% - 8px),0 calc(100% - 8px));transition:transform .08s}
 .q:active{transform:scale(.97)}
 .q canvas{image-rendering:pixelated;width:50px;height:50px;flex:none}
@@ -38,8 +48,12 @@ h1{margin:0;font-size:26px;color:var(--gold);font-weight:400}
 .q .tg{font-size:13px;color:var(--dim)}
 .q.done .nm{color:var(--dim);text-decoration:line-through}
 .q.done canvas{opacity:.4}
+.q.wkq{border-left:0}
 .cb{width:34px;height:34px;border:4px solid #5a6290;background:var(--deep);flex:none;display:grid;place-items:center;color:var(--bg);font-size:24px}
 .q.done .cb{border-color:var(--teal);background:var(--teal)}
+.cnt{min-width:58px;text-align:center;font-size:22px;color:var(--gold)}
+.q.done .cnt{color:var(--teal)}
+.minus{background:var(--deep);border:0;color:var(--dim);font:inherit;width:30px;height:30px;font-size:20px;cursor:pointer}
 .float{position:fixed;pointer-events:none;color:var(--gold);font-size:24px;text-shadow:2px 2px 0 #14162a;animation:fl 1s steps(10) forwards;z-index:50}
 @keyframes fl{to{transform:translateY(-70px);opacity:0}}
 .spark{position:fixed;width:8px;height:8px;pointer-events:none;z-index:50;animation:sp .8s steps(8) forwards}
@@ -50,8 +64,9 @@ h1{margin:0;font-size:26px;color:var(--gold);font-weight:400}
 @keyframes pop{from{transform:scale(.3)}}
 #banner h2{margin:0 0 8px;color:var(--gold);font-weight:400;font-size:34px}
 .set label{display:block;margin:6px 0;font-size:15px}
-.set input[type=text],.set select,.set textarea{background:var(--deep);color:var(--ink);border:3px solid #5a6290;font:inherit;padding:8px;width:100%}
-.set textarea{height:90px;font-size:12px}
+.set input[type=text],.set input[type=date],.set select,.set textarea{background:var(--deep);color:var(--ink);border:3px solid #5a6290;font:inherit;padding:8px;width:100%;margin-top:4px}
+.set textarea{height:70px;font-size:14px}
+.set h3{margin:16px 0 4px;font-size:18px;font-weight:400;color:var(--gold)}
 .days{display:flex;gap:4px;margin:6px 0}
 .days label{flex:1;text-align:center;background:var(--deep);padding:6px 0;margin:0}
 .days input{display:none}.days input:checked+span{color:var(--gold)}
@@ -64,12 +79,26 @@ h1{margin:0;font-size:26px;color:var(--gold);font-weight:400}
   <div class="top"><div><h1>오늘의 퀘스트</h1><div class="date" id="date"></div></div><div><button class="btn" id="snd">소리 켬</button> <button class="btn" id="gear">설정</button></div></div>
   <canvas id="scene" width="160" height="80"></canvas>
   <div class="panel">
+    <div class="sea"><span id="sea1"></span><small id="sea2"></small></div>
+    <div class="bar t s" style="margin-top:6px"><i id="seabar" style="width:0"></i></div>
+    <div class="msg" id="seamsg"></div>
+  </div>
+  <div class="panel">
     <div class="stat"><span class="lv" id="lv"></span><div class="bar"><i id="xpbar" style="width:0"></i></div><span class="xpn" id="xpn"></span></div>
     <div class="title" id="ttl" style="margin-top:4px"></div>
   </div>
-  <div class="panel streak"><div>🔥 <span id="stk"></span></div><div class="week" id="week"></div></div>
+  <div class="panel">
+    <div class="wk-row"><span>주간 점수</span><span id="wkcur"></span></div>
+    <div class="weeks" id="weeks"></div>
+    <div class="sm">금색 85% 이상, 청록 60% 이상 / 🔥 <span id="stk"></span></div>
+  </div>
   <div id="list"></div>
-  <div class="panel"><div class="stat"><span id="prog" style="font-size:20px;white-space:nowrap"></span><div class="bar t"><i id="pbar" style="width:0"></i></div></div><div class="sm" style="margin-top:6px">퀘스트당 +10 XP, 전부 깨면 보너스 +30</div></div>
+  <div class="panel"><div class="stat"><span id="prog" style="font-size:20px;white-space:nowrap"></span><div class="bar t"><i id="pbar" style="width:0"></i></div></div><div class="sm" style="margin-top:6px">퀘스트 1개 +10 XP, 오늘 전부 깨면 보너스 +30</div></div>
+  <div class="panel">
+    <div style="font-size:18px">이번 주 리뷰 <span class="sm">(계획 문제? 실행 문제? 한 줄)</span></div>
+    <textarea id="rv" style="width:100%;height:60px;margin-top:6px;background:var(--deep);color:var(--ink);border:3px solid #5a6290;font:inherit;padding:8px;font-size:14px"></textarea>
+    <button class="btn" id="rvs" style="margin-top:6px">리뷰 저장</button>
+  </div>
   <div id="settings" class="panel set" hidden></div>
 </div>
 <div id="banner"><div><h2 id="bt"></h2><div id="bs"></div><button class="btn" style="margin-top:14px" onclick="document.getElementById('banner').classList.remove('on')">확인</button></div></div>
@@ -84,34 +113,63 @@ const ICONS={
  "공부":["..........","bbbbb.bbbb","bwwwb.bwwb","bwwwb.bwwb","bwwwb.bwwb","bwwwb.bwwb","bwwwb.bwwb","bbbbb.bbbb","..........",".........."],
  "기록":["..oooooo..",".owwwwwwo.",".owwwwwwo.",".owkkkkwo.",".owwwwwwo.",".owkkkwwo.",".owwwwwwo.",".owkkkkwo.",".owwwwwwo.","..oooooo.."],
  "운동":["..........","..bb..bb..","bbbb..bbbb","bbbbbbbbbb","bbbb..bbbb","..bb..bb..","..........","..........","..........",".........."],
- "집안일":["....tt....","...tttt...","..tttttt..",".tttttttt.","..tttttt..","..tttttt..","...tttt...","..tttttt..","..t.tt.t..",".........."]
+ "집안일":["....tt....","...tttt...","..tttttt..",".tttttttt.","..tttttt..","..tttttt..","...tttt...","..tttttt..","..t.tt.t..",".........."],
+ "식단":["....dd....","...gg.....",".rrr.rrr..","rrrrrrrrr.","rrrrrrrrr.","rrrrrrrrr.",".rrrrrrr..","..rr.rr...","..........",".........."]
 };
 const TAGS=Object.keys(ICONS);
+const GK=['invest','health','growth','common'];
+const mkGoals=()=>({invest:{name:'목표 1',text:'',obstacle:'',plan:''},health:{name:'목표 2',text:'',obstacle:'',plan:''},growth:{name:'목표 3',text:'',obstacle:'',plan:''},common:{name:'공통',text:'',obstacle:'',plan:''}});
 const DEF=[
- {id:'d1',name:'오늘의 할 일 1',tag:'기록',days:null},
- {id:'d2',name:'운동 또는 산책',tag:'운동',days:null},
- {id:'d3',name:'공부 30분',tag:'공부',days:null}
+ {id:'d1',name:'오늘의 할 일 1',tag:'기록',goal:'growth',days:null,weekly:0},
+ {id:'d2',name:'운동 또는 산책',tag:'운동',goal:'health',days:null,weekly:0},
+ {id:'d3',name:'공부 30분',tag:'공부',goal:'growth',days:null,weekly:0},
+ {id:'w1',name:'주간 점검',tag:'기록',goal:'common',days:null,weekly:1}
 ];
 const TITLES=['새내기 비서','견습 비서','주임 비서','대리 비서','과장 비서','차장 비서','부장 비서','이사 비서','상무 비서','전무 비서','대표 비서','전설의 비서'];
-const WD='월화수목금토일',QXP=10,BONUS=30,RATIO=.6,KEY='quest_pwa_v1';
+const WD='월화수목금토일',QXP=10,BONUS=30,RATIO=.6,WIN=.85,KEY='quest_pwa_v1';
 let S;
-function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||!S.quests)S={quests:DEF,days:{},sound:true}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parseD=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
 const wdOf=d=>(d.getDay()+6)%7;
-function rec(d){const k=ds(d);if(!S.days[k]){S.days[k]={ids:S.quests.filter(q=>!q.days||q.days.includes(wdOf(d))).map(q=>q.id),done:{}};save()}return S.days[k]}
+const addDays=(d,n)=>{const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x};
+const mondayOf=d=>addDays(d,-wdOf(d));
+const dayDiff=(a,b)=>Math.round((Date.UTC(a.getFullYear(),a.getMonth(),a.getDate())-Date.UTC(b.getFullYear(),b.getMonth(),b.getDate()))/864e5);
+function load(){
+ try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+ if(!S||!S.quests)S={quests:DEF,days:{},sound:true};
+ if(!S.season)S.season={start:ds(mondayOf(new Date())),weeks:12,goals:mkGoals()};
+ const g=mkGoals();GK.forEach(k=>{S.season.goals[k]=Object.assign({},g[k],S.season.goals[k]||{})});
+ if(!S.wk)S.wk={};if(!S.reviews)S.reviews={};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const isDaily=q=>!q.weekly;
+const dailyIds=d=>S.quests.filter(q=>isDaily(q)&&(!q.days||q.days.includes(wdOf(d)))).map(q=>q.id);
+function rec(d){const k=ds(d);if(!S.days[k]){S.days[k]={ids:dailyIds(d),done:{}};save()}return S.days[k]}
 function dayXp(r){const n=r.ids.filter(i=>r.done[i]).length;return n*QXP+(r.ids.length&&n==r.ids.length?BONUS:0)}
 function levelOf(t){let lv=1,need=100;while(t>=need){t-=need;lv++;need=100+20*(lv-1)}return{lv,xp:t,need}}
-function totalXp(){return Object.values(S.days).reduce((a,r)=>a+dayXp(r),0)}
+function wkXp(){let n=0;Object.values(S.wk).forEach(w=>Object.values(w).forEach(c=>n+=c));return n*QXP}
+function totalXp(){return Object.values(S.days).reduce((a,r)=>a+dayXp(r),0)+wkXp()}
 function ratio(r){return r&&r.ids.length?r.ids.filter(i=>r.done[i]).length/r.ids.length:0}
-function streak(){let d=new Date(),n=0;const ok=x=>{const r=S.days[ds(x)];return r&&ratio(r)>=RATIO};if(!ok(d))d.setDate(d.getDate()-1);while(ok(d)){n++;d.setDate(d.getDate()-1)}return n}
+function streak(){let d=new Date(),n=0;const ok=x=>{const r=S.days[ds(x)];return r&&ratio(r)>=RATIO};if(!ok(d))d=addDays(d,-1);while(ok(d)){n++;d=addDays(d,-1)}return n}
+const wkKey=d=>ds(mondayOf(d));
+const wkCount=(d,qid)=>((S.wk[wkKey(d)]||{})[qid])||0;
+function season(){const st=parseD(S.season.start),n=dayDiff(new Date(),st)+1,total=S.season.weeks*7;return{st,n,total,week:Math.floor((n-1)/7)+1,before:n<1,after:n>total}}
+function weekScore(wi){
+ const ws=addDays(season().st,(wi-1)*7),today=new Date();if(dayDiff(ws,today)>0)return null;
+ let p=0,dn=0;
+ for(let i=0;i<7;i++){const day=addDays(ws,i);if(dayDiff(day,today)>0)break;const rr=S.days[ds(day)];const ids=rr?rr.ids:dailyIds(day);p+=ids.length;if(rr)dn+=ids.filter(id=>rr.done[id]).length}
+ const w=S.wk[ds(ws)]||{};S.quests.filter(q=>q.weekly).forEach(q=>{p+=q.weekly;dn+=Math.min(w[q.id]||0,q.weekly)});
+ return{p,dn,pct:p?dn/p:0};
+}
 let AC;function beep(notes){if(!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();let t=AC.currentTime;notes.forEach(([f,l])=>{const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.06,t);g.gain.linearRampToValueAtTime(0,t+l);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+l);t+=l*.9})}catch(e){}}
 function spr(c,rows,x,y,s){rows.forEach((r,j)=>[...r].forEach((ch,i)=>{if(ch!='.'){c.fillStyle=PAL[ch];c.fillRect(x+i*s,y+j*s,s,s)}}))}
 const HERO=["...kkkkkk...","..kddddddk..",".kddddddddk.",".kdyyyyyydk.",".kyykyykyyk.",".kyyyyyyyyk.","..kyyrryyk..","...kkyykk...","..kttttttk..",".kttttttttk.",".kyttttttyk.",".kyttttttyk.","..kttkkttk..","..kkk..kkk.."];
 const CAP=["...gggggg...","..gggggggg.."],CROWN=[".g.g.gg.g.g.",".gggggggggg.","gggggggggggg"];
 let tick=0;
 function scene(){
- const cv=document.getElementById('scene'),c=cv.getContext('2d');
+ const cv=$('scene'),c=cv.getContext('2d');
  const h=new Date().getHours(),day=h>=6&&h<18;
  c.fillStyle='#3b4272';c.fillRect(0,0,160,80);
  c.fillStyle='#2f3560';for(let x=0;x<160;x+=8)c.fillRect(x,0,1,56);
@@ -130,34 +188,72 @@ function scene(){
  c.fillStyle='#d2683c';c.fillRect(138,58,12,10);c.fillStyle='#46d2be';c.fillRect(141,48,2,10);c.fillRect(144,44,2,14);c.fillRect(147,50,2,8);c.fillStyle='#2f8f84';c.fillRect(137,52,4,4);c.fillRect(148,46,4,4);
 }
 function icon(tag){const cv=document.createElement('canvas');cv.width=cv.height=50;spr(cv.getContext('2d'),ICONS[tag]||ICONS['기록'],0,0,5);return cv}
-const $=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const open={};
+const gname=k=>S.season.goals[k].name;
+function seasonUI(){
+ const s=season(),d=new Date();
+ if(s.before){$('sea1').textContent=S.season.weeks+'주 시즌 준비';$('sea2').textContent='시작 D-'+(-s.n+1);$('seabar').style.width='0';$('seamsg').textContent=`${s.st.getMonth()+1}월 ${s.st.getDate()}일 ${WD[wdOf(s.st)]}요일에 시작해요. 그 전에 목표 3개를 설정에서 다듬어 두세요.`;return}
+ if(s.after){$('sea1').textContent='시즌 종료';$('sea2').textContent=S.season.weeks+'주 완료';$('seabar').style.width='100%';$('seamsg').textContent='12주가 끝났어요. 주간 점수를 훑어보고, 리뷰 칸에 최종 평가를 적어 보세요.';return}
+ $('sea1').textContent=`${S.season.weeks}주 중 ${s.week}주차`;$('sea2').textContent='D-'+(s.total-s.n)+' / '+s.n+'일째';$('seabar').style.width=(s.n/s.total*100)+'%';
+ const w=s.week;$('seamsg').textContent=w<=2?'첫 4주가 가장 중요해요. 12주 방식에 익숙해지는 구간입니다.':w<=5?'의욕이 꺼지기 쉬운 "절망의 계곡" 구간일 수 있어요. 흔한 일이니 계획대로 가요.':w<=8?'선행 지표와 결과 지표 모두 진전이 보여야 하는 구간이에요.':'마무리 구간이에요. 마지막 주까지 85%를 지켜봐요.';
+}
+function weeksUI(){
+ const s=season(),box=$('weeks');box.innerHTML='';
+ for(let i=1;i<=S.season.weeks;i++){const sc=weekScore(i),b=document.createElement('b');
+  if(sc){b.className=sc.pct>=WIN?'g':sc.pct>=RATIO?'a':'';b.innerHTML='<span>'+Math.round(sc.pct*100)+'</span>'}
+  if(!s.before&&!s.after&&i==s.week)b.classList.add('cur');box.appendChild(b)}
+ const cur=!s.before&&!s.after?weekScore(s.week):null;$('wkcur').textContent=cur?`이번 주 ${Math.round(cur.pct*100)}% (${cur.dn}/${cur.p})`:'';
+ $('stk').textContent='연속 '+streak()+'일';
+ $('rv').value=S.reviews[wkKey(new Date())]||'';
+}
 function render(){
  const d=new Date(),r=rec(d),L=levelOf(totalXp());
  $('date').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${WD[wdOf(d)]}요일`;
  $('lv').textContent='Lv.'+L.lv;$('xpbar').style.width=(L.xp/L.need*100)+'%';$('xpn').textContent=L.xp+'/'+L.need;
  $('ttl').textContent=TITLES[Math.min(TITLES.length-1,Math.floor((L.lv-1)/2))];
- $('stk').textContent='연속 '+streak()+'일';
- const wk=$('week');wk.innerHTML='';for(let i=6;i>=0;i--){const x=new Date(d);x.setDate(x.getDate()-i);const rr=S.days[ds(x)],b=document.createElement('b');if(rr){const q=ratio(rr);b.className=q>=1?'f':q>=RATIO?'p':''}if(i==0)b.classList.add('today');wk.appendChild(b)}
+ seasonUI();weeksUI();
  const list=$('list');list.innerHTML='';
- r.ids.forEach(id=>{const q=S.quests.find(x=>x.id==id);if(!q)return;const el=document.createElement('div');el.className='q'+(r.done[id]?' done':'');
-  el.appendChild(icon(q.tag));const m=document.createElement('div');m.className='nm';m.innerHTML=`${esc(q.name)}<div class="tg">${esc(q.tag)}${r.done[id]==='auto'?' / 자동 체크':''}</div>`;el.appendChild(m);
-  const cb=document.createElement('div');cb.className='cb';cb.textContent=r.done[id]?'✔':'';el.appendChild(cb);el.onclick=ev=>tap(id,ev);list.appendChild(el)});
- const n=r.ids.filter(i=>r.done[i]).length;$('prog').textContent=`진행 ${n}/${r.ids.length}`;$('pbar').style.width=(r.ids.length?n/r.ids.length*100:0)+'%';
+ GK.forEach(g=>{
+  const dq=r.ids.map(id=>S.quests.find(x=>x.id==id)).filter(q=>q&&(q.goal||'common')==g);
+  const wq=S.quests.filter(q=>q.weekly&&(q.goal||'common')==g);
+  if(!dq.length&&!wq.length)return;
+  const gd=S.season.goals[g],dn=dq.filter(q=>r.done[q.id]).length;
+  const wn=wq.reduce((a,q)=>a+Math.min(wkCount(d,q.id),q.weekly),0),wt=wq.reduce((a,q)=>a+q.weekly,0);
+  const h=document.createElement('div');h.className='gh';
+  h.innerHTML=`<div class="hd"><b style="font-weight:400">${esc(gd.name)}</b><span>오늘 ${dn}/${dq.length}${wt?' / 이번 주 '+wn+'/'+wt:''}</span></div>${gd.text?`<div class="tx">${esc(gd.text)}</div>`:''}${open[g]?`<div class="dt">어려울 점: ${esc(gd.obstacle||'(아직 안 적음)')}\n극복 방법: ${esc(gd.plan||'(아직 안 적음)')}</div>`:''}`;
+  h.onclick=()=>{open[g]=!open[g];render()};list.appendChild(h);
+  dq.forEach(q=>{const el=document.createElement('div');el.className='q'+(r.done[q.id]?' done':'');
+   el.appendChild(icon(q.tag));const m=document.createElement('div');m.className='nm';m.innerHTML=`${esc(q.name)}<div class="tg">${esc(q.tag)}${r.done[q.id]==='auto'?' / 자동 체크':''}</div>`;el.appendChild(m);
+   const cb=document.createElement('div');cb.className='cb';cb.textContent=r.done[q.id]?'✔':'';el.appendChild(cb);el.onclick=ev=>tap(q.id,ev);list.appendChild(el)});
+  wq.forEach(q=>{const c=wkCount(d,q.id),full=c>=q.weekly;const el=document.createElement('div');el.className='q wkq'+(full?' done':'');
+   el.appendChild(icon(q.tag));const m=document.createElement('div');m.className='nm';m.innerHTML=`${esc(q.name)}<div class="tg">${esc(q.tag)} / 주 ${q.weekly}회</div>`;el.appendChild(m);
+   const mb=document.createElement('button');mb.className='minus';mb.textContent='−';mb.onclick=ev=>{ev.stopPropagation();wkAdd(q.id,-1)};el.appendChild(mb);
+   const cn=document.createElement('div');cn.className='cnt';cn.textContent=c+'/'+q.weekly;el.appendChild(cn);
+   el.onclick=ev=>wkTap(q.id,ev);list.appendChild(el)});
+ });
+ const n=r.ids.filter(i=>r.done[i]).length;$('prog').textContent=`오늘 ${n}/${r.ids.length}`;$('pbar').style.width=(r.ids.length?n/r.ids.length*100:0)+'%';
  $('snd').textContent=S.sound?'소리 켬':'소리 끔';scene();
 }
 function fx(x,y,txt){const f=document.createElement('div');f.className='float';f.textContent=txt;f.style.left=(x-24)+'px';f.style.top=(y-20)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),1000);
  for(let i=0;i<10;i++){const s=document.createElement('div');s.className='spark';s.style.left=x+'px';s.style.top=y+'px';s.style.background=['#ffc846','#46d2be','#ff8cbe','#fff'][i%4];const a=i/10*6.28;s.style.setProperty('--dx',Math.cos(a)*50+'px');s.style.setProperty('--dy',Math.sin(a)*50+'px');document.body.appendChild(s);setTimeout(()=>s.remove(),800)}}
-function tap(id,ev){
- const r=rec(new Date()),before=levelOf(totalXp()).lv,wasClear=r.ids.every(i=>r.done[i]);
- if(r.done[id]){if(r.done[id]==='auto'){r.skip=r.skip||{};r.skip[id]=1}delete r.done[id];save();render();return}
- r.done[id]=Date.now();save();
+function allClear(r){return r.ids.length>0&&r.ids.every(i=>r.done[i])}
+function gained(ev,before,wasClear){
  fx(ev.clientX||innerWidth/2,ev.clientY||200,'+'+QXP+' XP');if(navigator.vibrate)navigator.vibrate(30);
- const after=levelOf(totalXp()).lv,clear=r.ids.every(i=>r.done[i]);
- render();
+ const after=levelOf(totalXp()).lv,clear=allClear(rec(new Date()));render();
  if(after>before){beep([[523,.12],[659,.12],[784,.12],[1047,.3]]);showBanner('LEVEL UP!','Lv.'+after+' '+TITLES[Math.min(TITLES.length-1,Math.floor((after-1)/2))])}
  else if(clear&&!wasClear){beep([[659,.1],[784,.1],[988,.1],[1319,.35]]);showBanner('ALL CLEAR!','오늘 퀘스트 전부 완료 +'+BONUS+' XP')}
  else beep([[660,.07],[990,.12]]);
+}
+function tap(id,ev){
+ const r=rec(new Date()),before=levelOf(totalXp()).lv,wasClear=allClear(r);
+ if(r.done[id]){if(r.done[id]==='auto'){r.skip=r.skip||{};r.skip[id]=1}delete r.done[id];save();render();return}
+ r.done[id]=Date.now();save();gained(ev,before,wasClear);
+}
+function wkAdd(qid,n){const q=S.quests.find(x=>x.id==qid),k=wkKey(new Date());S.wk[k]=S.wk[k]||{};const c=Math.max(0,Math.min(q.weekly,(S.wk[k][qid]||0)+n));S.wk[k][qid]=c;save();render()}
+function wkTap(qid,ev){
+ const q=S.quests.find(x=>x.id==qid);if(wkCount(new Date(),qid)>=q.weekly)return;
+ const before=levelOf(totalXp()).lv,wasClear=allClear(rec(new Date())),k=wkKey(new Date());
+ S.wk[k]=S.wk[k]||{};S.wk[k][qid]=(S.wk[k][qid]||0)+1;save();gained(ev,before,wasClear);
 }
 /* ---- PC 자동 체크 (ntfy.sh 비밀 주소에서 오늘 완료 목록 읽기) ---- */
 let syncMsg='';
@@ -170,26 +266,44 @@ async function syncPC(){
   const m=JSON.parse(msgs[msgs.length-1].message),r=rec(new Date());
   syncMsg='마지막 수신 '+(m.updated||'').replace('T',' ').slice(5,16);
   if(m.date!==ds(new Date()))return;
-  const before=levelOf(totalXp()).lv,wasClear=r.ids.every(i=>r.done[i]);let added=0;
+  const before=levelOf(totalXp()).lv,wasClear=allClear(r);let added=0;
   (m.done||[]).forEach(id=>{if(r.ids.includes(id)&&!r.done[id]&&!(r.skip&&r.skip[id])){r.done[id]='auto';added++}});
-  if(added){save();render();const after=levelOf(totalXp()).lv,clear=r.ids.every(i=>r.done[i]);
+  if(added){save();render();const after=levelOf(totalXp()).lv,clear=allClear(r);
    if(after>before){beep([[523,.12],[659,.12],[784,.12],[1047,.3]]);showBanner('LEVEL UP!','Lv.'+after)}
    else if(clear&&!wasClear){beep([[659,.1],[784,.1],[988,.1],[1319,.35]]);showBanner('ALL CLEAR!','오늘 퀘스트 전부 완료 +'+BONUS+' XP')}
    else beep([[660,.07],[990,.12]])}
  }catch(e){syncMsg='연결 실패(인터넷 확인)'}
 }
 function showBanner(t,s){$('bt').textContent=t;$('bs').textContent=s;$('banner').classList.add('on')}
+/* ---- 주간 리뷰 ---- */
+$('rvs').onclick=()=>{
+ const v=$('rv').value.trim(),k=wkKey(new Date());if(v)S.reviews[k]=v;else delete S.reviews[k];
+ const r=rec(new Date());if(v&&r.ids.includes('review')&&!r.done.review)r.done.review='auto';
+ save();render();beep([[660,.08],[880,.1]]);
+};
+/* ---- 설정 ---- */
 $('gear').onclick=()=>{const s=$('settings');s.hidden=!s.hidden;if(!s.hidden){drawSettings();s.scrollIntoView()}};
 $('snd').onclick=()=>{S.sound=!S.sound;save();render();beep([[660,.08]])};
 function drawSettings(){
- const el=$('settings');el.innerHTML='<div style="font-size:20px;margin-bottom:6px">퀘스트 관리</div>';
- S.quests.forEach((q,i)=>{const r=document.createElement('div');r.className='row';r.innerHTML=`<div class="nm">${esc(q.name)}<div class="sm">${esc(q.tag)} / ${q.days?q.days.map(d=>WD[d]).join(''):'매일'}</div></div>`;const b=document.createElement('button');b.className='btn';b.textContent='삭제';b.onclick=()=>{if(confirm('삭제할까요? 지난 기록은 유지됩니다.')){S.quests.splice(i,1);const r2=rec(new Date());r2.ids=r2.ids.filter(x=>x!=q.id);save();render();drawSettings()}};r.appendChild(b);el.appendChild(r)});
- el.insertAdjacentHTML('beforeend',`<div style="margin-top:12px;font-size:17px">새 퀘스트</div><input type="text" id="nn" placeholder="이름"><select id="nt" style="margin-top:6px">${TAGS.map(t=>`<option>${t}</option>`).join('')}</select><div class="days">${[...WD].map((w,i)=>`<label><input type="checkbox" value="${i}" checked><span>${w}</span></label>`).join('')}</div><button class="btn" id="add">추가</button><div style="margin-top:14px;font-size:17px">PC 자동 체크</div><div class="sm">PC가 한 일(블로그·스레드·일기)을 자동으로 체크합니다. 비밀 주소를 넣으세요. <span id="sm">${esc(syncMsg)}</span></div><input type="text" id="sy" placeholder="비밀 주소 (quest-로 시작)" value="${esc(S.sync||'')}"><button class="btn" id="sv" style="margin-top:6px">저장하고 확인</button><div style="margin-top:14px;font-size:17px">백업</div><div class="sm">기기를 바꾸거나 데이터가 걱정될 때 복사해 두세요.</div><textarea id="bk"></textarea><div class="row"><button class="btn" id="ex">내보내기</button><button class="btn" id="im">가져오기</button></div>`);
- $('add').onclick=()=>{const n=$('nn').value.trim();if(!n)return;const days=[...document.querySelectorAll('.days input')].filter(x=>x.checked).map(x=>+x.value);const q={id:'q'+Date.now(),name:n,tag:$('nt').value,days:days.length==7?null:days};S.quests.push(q);const r=rec(new Date());if(!q.days||q.days.includes(wdOf(new Date())))r.ids.push(q.id);save();render();drawSettings()};
+ const el=$('settings'),sg=S.season.goals;
+ let h='<div style="font-size:20px;margin-bottom:6px">12주 시즌</div>';
+ h+=`<label>시작일(월요일 권장)<input type="date" id="sst" value="${esc(S.season.start)}"></label>`;
+ GK.forEach(k=>{const g=sg[k];h+=`<h3>${esc(g.name)}</h3><input type="text" id="gn_${k}" placeholder="이름" value="${esc(g.name)}"><textarea id="gt_${k}" placeholder="목표 (구체적, 긍정문, 기한 포함)">${esc(g.text)}</textarea><textarea id="go_${k}" placeholder="실행하는 데 어려울 만한 것은?">${esc(g.obstacle)}</textarea><textarea id="gp_${k}" placeholder="어려움을 넘기 위해 어떻게 하겠는가?">${esc(g.plan)}</textarea>`});
+ h+='<button class="btn" id="gsave" style="margin-top:8px">시즌·목표 저장</button>';
+ h+='<h3 style="margin-top:20px">퀘스트 관리</h3>';
+ S.quests.forEach((q,i)=>{h+=`<div class="row"><div class="nm">${esc(q.name)}<div class="sm">${esc(gname(q.goal||'common'))} / ${esc(q.tag)} / ${q.weekly?'주 '+q.weekly+'회':(q.days?q.days.map(d=>WD[d]).join(''):'매일')}</div></div><button class="btn" data-del="${i}">삭제</button></div>`});
+ h+=`<h3>새 퀘스트</h3><input type="text" id="nn" placeholder="이름"><select id="ng">${GK.map(k=>`<option value="${k}">${esc(gname(k))}</option>`).join('')}</select><select id="nt">${TAGS.map(t=>`<option>${t}</option>`).join('')}</select><select id="nw"><option value="0">매일(요일 선택)</option>${[1,2,3,4,5,6,7].map(n=>`<option value="${n}">주 ${n}회</option>`).join('')}</select><div class="days">${[...WD].map((w,i)=>`<label><input type="checkbox" value="${i}" checked><span>${w}</span></label>`).join('')}</div><button class="btn" id="add">추가</button>`;
+ h+=`<h3>PC 자동 체크</h3><div class="sm">PC가 한 일(블로그·스레드·일기)을 자동 체크합니다. 비밀 주소를 넣으세요. <span id="sm">${esc(syncMsg)}</span></div><input type="text" id="sy" placeholder="비밀 주소 (quest-로 시작)" value="${esc(S.sync||'')}"><button class="btn" id="sv" style="margin-top:6px">저장하고 확인</button>`;
+ h+='<h3>백업</h3><div class="sm">기기를 바꾸거나 데이터가 걱정될 때 복사해 두세요.</div><textarea id="bk" style="height:90px;font-size:12px"></textarea><div class="row"><button class="btn" id="ex">내보내기</button><button class="btn" id="im">가져오기</button></div>';
+ el.innerHTML=h;
+ $('gsave').onclick=()=>{const st=$('sst').value;if(st)S.season.start=st;GK.forEach(k=>{const g=S.season.goals[k];g.name=$('gn_'+k).value.trim()||g.name;g.text=$('gt_'+k).value.trim();g.obstacle=$('go_'+k).value.trim();g.plan=$('gp_'+k).value.trim()});save();render();drawSettings();beep([[660,.08],[880,.1]])};
+ el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const i=+b.dataset.del,q=S.quests[i];if(confirm('삭제할까요? 지난 기록은 유지됩니다.')){S.quests.splice(i,1);const r2=rec(new Date());r2.ids=r2.ids.filter(x=>x!=q.id);save();render();drawSettings()}});
+ $('add').onclick=()=>{const n=$('nn').value.trim();if(!n)return;const w=+$('nw').value,days=[...document.querySelectorAll('.days input')].filter(x=>x.checked).map(x=>+x.value);const q={id:'q'+Date.now(),name:n,tag:$('nt').value,goal:$('ng').value,weekly:w,days:(w||days.length==7)?null:days};S.quests.push(q);const r=rec(new Date());if(!q.weekly&&(!q.days||q.days.includes(wdOf(new Date()))))r.ids.push(q.id);save();render();drawSettings()};
  $('sv').onclick=async()=>{S.sync=$('sy').value.trim();save();$('sm').textContent='확인 중...';await syncPC();$('sm').textContent=syncMsg};
  $('ex').onclick=()=>{$('bk').value=JSON.stringify(S);$('bk').select()};
- $('im').onclick=()=>{try{const o=JSON.parse($('bk').value);if(!o.quests||!o.days)throw 0;S=o;save();render();drawSettings()}catch(e){alert('형식이 올바르지 않습니다')}};
+ $('im').onclick=()=>{try{const o=JSON.parse($('bk').value);if(!o.quests||!o.days)throw 0;S=o;load2();save();render();drawSettings()}catch(e){alert('형식이 올바르지 않습니다')}};
 }
+function load2(){const g=mkGoals();if(!S.season)S.season={start:ds(mondayOf(new Date())),weeks:12,goals:mkGoals()};GK.forEach(k=>{S.season.goals[k]=Object.assign({},g[k],S.season.goals[k]||{})});if(!S.wk)S.wk={};if(!S.reviews)S.reviews={}}
 load();render();syncPC();setInterval(()=>{tick++;scene()},500);setInterval(syncPC,120000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){render();syncPC()}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
