@@ -141,7 +141,7 @@ function load(){
  if(!S||!S.quests)S={quests:DEF,days:{},sound:true};
  if(!S.season)S.season={start:ds(mondayOf(new Date())),weeks:12,goals:mkGoals()};
  const g=mkGoals();GK.forEach(k=>{S.season.goals[k]=Object.assign({},g[k],S.season.goals[k]||{})});
- if(!S.wk)S.wk={};if(!S.reviews)S.reviews={};
+ if(!S.wk)S.wk={};if(!S.reviews)S.reviews={};if(!S.wkplan)S.wkplan={};
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const isDaily=q=>!q.weekly;
@@ -155,12 +155,22 @@ function ratio(r){return r&&r.ids.length?r.ids.filter(i=>r.done[i]).length/r.ids
 function streak(){let d=new Date(),n=0;const ok=x=>{const r=S.days[ds(x)];return r&&ratio(r)>=RATIO};if(!ok(d))d=addDays(d,-1);while(ok(d)){n++;d=addDays(d,-1)}return n}
 const wkKey=d=>ds(mondayOf(d));
 const wkCount=(d,qid)=>((S.wk[wkKey(d)]||{})[qid])||0;
+/* 주간 계획은 그 주에 처음 열 때 고정(스냅샷)한다. 나중에 퀘스트를 바꿔도 지난 주 점수는 변하지 않는다. */
+function weekPlan(key){
+ if(S.wkplan[key])return S.wkplan[key];
+ const fb=S.quests.filter(q=>q.weekly).map(q=>({id:q.id,n:q.weekly}));
+ if(key===wkKey(new Date())){S.wkplan[key]=fb;save();return fb}
+ return fb;
+}
+function weeklyList(d){return weekPlan(wkKey(d)).map(p=>{const q=S.quests.find(x=>x.id==p.id);return q?Object.assign({},q,{weekly:p.n}):null}).filter(Boolean)}
+/* 앱을 안 연 날도 그날의 일일 계획을 기록해 둔다(이후 퀘스트를 바꿔도 과거 점수 유지). */
+function backfill(){const ks=Object.keys(S.days).sort();if(!ks.length)return;let d=addDays(parseD(ks[ks.length-1]),1),t=new Date(),n=0;while(dayDiff(d,t)<0&&n++<400){rec(d);d=addDays(d,1)}}
 function season(){const st=parseD(S.season.start),n=dayDiff(new Date(),st)+1,total=S.season.weeks*7;return{st,n,total,week:Math.floor((n-1)/7)+1,before:n<1,after:n>total}}
 function weekScore(wi){
  const ws=addDays(season().st,(wi-1)*7),today=new Date();if(dayDiff(ws,today)>0)return null;
  let p=0,dn=0;
  for(let i=0;i<7;i++){const day=addDays(ws,i);if(dayDiff(day,today)>0)break;const rr=S.days[ds(day)];const ids=rr?rr.ids:dailyIds(day);p+=ids.length;if(rr)dn+=ids.filter(id=>rr.done[id]).length}
- const w=S.wk[ds(ws)]||{};S.quests.filter(q=>q.weekly).forEach(q=>{p+=q.weekly;dn+=Math.min(w[q.id]||0,q.weekly)});
+ const w=S.wk[ds(ws)]||{};weekPlan(ds(ws)).forEach(pl=>{p+=pl.n;dn+=Math.min(w[pl.id]||0,pl.n)});
  return{p,dn,pct:p?dn/p:0};
 }
 let AC;function beep(notes){if(!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();let t=AC.currentTime;notes.forEach(([f,l])=>{const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.06,t);g.gain.linearRampToValueAtTime(0,t+l);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+l);t+=l*.9})}catch(e){}}
@@ -207,7 +217,7 @@ function weeksUI(){
  $('rv').value=S.reviews[wkKey(new Date())]||'';
 }
 function render(){
- const d=new Date(),r=rec(d),L=levelOf(totalXp());
+ backfill();const d=new Date(),r=rec(d),L=levelOf(totalXp());
  $('date').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${WD[wdOf(d)]}요일`;
  $('lv').textContent='Lv.'+L.lv;$('xpbar').style.width=(L.xp/L.need*100)+'%';$('xpn').textContent=L.xp+'/'+L.need;
  $('ttl').textContent=TITLES[Math.min(TITLES.length-1,Math.floor((L.lv-1)/2))];
@@ -224,7 +234,7 @@ function render(){
    el.appendChild(icon(q.tag));const m=document.createElement('div');m.className='nm';m.innerHTML=`${esc(q.name)}<div class="tg">${esc(q.tag)}${r.done[q.id]==='auto'?' / 자동 체크':''}</div>`;el.appendChild(m);
    const cb=document.createElement('div');cb.className='cb';cb.textContent=r.done[q.id]?'✔':'';el.appendChild(cb);el.onclick=ev=>tap(q.id,ev);list.appendChild(el)});
  });
- const wq=S.quests.filter(q=>q.weekly);
+ const wq=weeklyList(d);
  if(wq.length){
   const wn=wq.reduce((a,q)=>a+Math.min(wkCount(d,q.id),q.weekly),0),wt=wq.reduce((a,q)=>a+q.weekly,0);
   const h=document.createElement('div');h.className='gh';h.style.cursor='default';
@@ -253,9 +263,9 @@ function tap(id,ev){
  if(r.done[id]){if(r.done[id]==='auto'){r.skip=r.skip||{};r.skip[id]=1}delete r.done[id];save();render();return}
  r.done[id]=Date.now();save();gained(ev,before,wasClear);
 }
-function wkAdd(qid,n){const q=S.quests.find(x=>x.id==qid),k=wkKey(new Date());S.wk[k]=S.wk[k]||{};const c=Math.max(0,Math.min(q.weekly,(S.wk[k][qid]||0)+n));S.wk[k][qid]=c;save();render()}
+function wkAdd(qid,n){const q=weeklyList(new Date()).find(x=>x.id==qid);if(!q)return;const k=wkKey(new Date());S.wk[k]=S.wk[k]||{};const c=Math.max(0,Math.min(q.weekly,(S.wk[k][qid]||0)+n));S.wk[k][qid]=c;save();render()}
 function wkTap(qid,ev){
- const q=S.quests.find(x=>x.id==qid);if(wkCount(new Date(),qid)>=q.weekly)return;
+ const q=weeklyList(new Date()).find(x=>x.id==qid);if(!q||wkCount(new Date(),qid)>=q.weekly)return;
  const before=levelOf(totalXp()).lv,wasClear=allClear(rec(new Date())),k=wkKey(new Date());
  S.wk[k]=S.wk[k]||{};S.wk[k][qid]=(S.wk[k][qid]||0)+1;save();gained(ev,before,wasClear);
 }
@@ -301,13 +311,14 @@ function drawSettings(){
  h+='<h3>백업</h3><div class="sm">기기를 바꾸거나 데이터가 걱정될 때 복사해 두세요.</div><textarea id="bk" style="height:90px;font-size:12px"></textarea><div class="row"><button class="btn" id="ex">내보내기</button><button class="btn" id="im">가져오기</button></div>';
  el.innerHTML=h;
  $('gsave').onclick=()=>{const st=$('sst').value;if(st)S.season.start=st;GK.forEach(k=>{const g=S.season.goals[k];g.name=$('gn_'+k).value.trim()||g.name;g.text=$('gt_'+k).value.trim();g.obstacle=$('go_'+k).value.trim();g.plan=$('gp_'+k).value.trim()});save();render();drawSettings();beep([[660,.08],[880,.1]])};
- el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const i=+b.dataset.del,q=S.quests[i];if(confirm('삭제할까요? 지난 기록은 유지됩니다.')){S.quests.splice(i,1);const r2=rec(new Date());r2.ids=r2.ids.filter(x=>x!=q.id);save();render();drawSettings()}});
- $('add').onclick=()=>{const n=$('nn').value.trim();if(!n)return;const w=+$('nw').value,days=[...document.querySelectorAll('.days input')].filter(x=>x.checked).map(x=>+x.value);const q={id:'q'+Date.now(),name:n,tag:$('nt').value,goal:$('ng').value,weekly:w,days:(w||days.length==7)?null:days};S.quests.push(q);const r=rec(new Date());if(!q.weekly&&(!q.days||q.days.includes(wdOf(new Date()))))r.ids.push(q.id);save();render();drawSettings()};
+ el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const i=+b.dataset.del,q=S.quests[i];if(confirm('삭제할까요? 지난 기록은 유지됩니다.')){S.quests.splice(i,1);const pl=S.wkplan[wkKey(new Date())];if(pl){const j=pl.findIndex(x=>x.id==q.id);if(j>=0)pl.splice(j,1)}const r2=rec(new Date());r2.ids=r2.ids.filter(x=>x!=q.id);save();render();drawSettings()}});
+ $('add').onclick=()=>{const n=$('nn').value.trim();if(!n)return;const w=+$('nw').value,days=[...document.querySelectorAll('.days input')].filter(x=>x.checked).map(x=>+x.value);const q={id:'q'+Date.now(),name:n,tag:$('nt').value,goal:$('ng').value,weekly:w,days:(w||days.length==7)?null:days};weekPlan(wkKey(new Date()));S.quests.push(q);if(q.weekly)S.wkplan[wkKey(new Date())].push({id:q.id,n:q.weekly});const r=rec(new Date());if(!q.weekly&&(!q.days||q.days.includes(wdOf(new Date()))))r.ids.push(q.id);save();render();drawSettings()};
  $('sv').onclick=async()=>{S.sync=$('sy').value.trim();save();$('sm').textContent='확인 중...';await syncPC();$('sm').textContent=syncMsg};
  $('ex').onclick=()=>{$('bk').value=JSON.stringify(S);$('bk').select()};
  $('im').onclick=()=>{try{const o=JSON.parse($('bk').value);if(!o.quests||!o.days)throw 0;S=o;load2();save();render();drawSettings()}catch(e){alert('형식이 올바르지 않습니다')}};
 }
-function load2(){const g=mkGoals();if(!S.season)S.season={start:ds(mondayOf(new Date())),weeks:12,goals:mkGoals()};GK.forEach(k=>{S.season.goals[k]=Object.assign({},g[k],S.season.goals[k]||{})});if(!S.wk)S.wk={};if(!S.reviews)S.reviews={}}
+function load2(){const g=mkGoals();if(!S.season)S.season={start:ds(mondayOf(new Date())),weeks:12,goals:mkGoals()};GK.forEach(k=>{S.season.goals[k]=Object.assign({},g[k],S.season.goals[k]||{})});if(!S.wk)S.wk={};if(!S.reviews)S.reviews={};if(!S.wkplan)S.wkplan={}}
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}  // 저장공간 부족 시에도 기록이 지워지지 않도록 요청
 load();render();syncPC();setInterval(()=>{tick++;scene()},500);setInterval(syncPC,120000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){render();syncPC()}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
